@@ -147,6 +147,28 @@ const unBlockWorker = async(req, res) => {
   }
 }
 
+const blockUser = async(req, res) => {
+  try{
+    const { id } = req.body
+    console.log(id);
+    await userModel.updateOne({_id:id},{$set:{isBlocked:true}})
+    res.status(200).json('done')
+  }catch {
+    res.status(500).json()
+  }
+}
+
+const unBlockUser = async(req, res) => {
+  try{
+    const { id } = req.body
+    console.log(id);
+    await userModel.updateOne({_id:id},{$set:{isBlocked:false}})
+    res.status(200).json('done')
+  }catch {
+    res.status(500).json()
+  }
+}
+
 const getCategory = async(req, res) => {
   try{
     const category = await categoryModel.find()
@@ -187,5 +209,7 @@ module.exports = {
     verifiedWorkers,
     blockWorker,
     unBlockWorker,
-    fetchUsers
+    fetchUsers,
+    blockUser,
+    unBlockUser
 }
