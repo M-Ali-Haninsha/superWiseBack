@@ -16,5 +16,7 @@ router.post('/adminReject',jwt, adminController.reject)
 router.post('/adminBlockWorker',jwt, adminController.blockWorker)
 router.post('/adminUnblockWorker',jwt, adminController.unBlockWorker)
 router.get('/adminFetchUsers', adminController.fetchUsers)
+router.post('/adminBlockUser', adminController.blockUser)
+router.post('/adminUnblockUser', adminController.unBlockUser)
 
 module.exports = router;

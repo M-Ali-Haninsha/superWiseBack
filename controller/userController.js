@@ -88,6 +88,7 @@ const userOtp = async(req, res)=> {
               lastName: lastName,
               email: email,
               password: hashpassword,
+              isBlocked:false
             };
             await userModel.insertMany([user]);
             res.status(200).json({'otpDone': true});
