@@ -197,6 +197,20 @@ const addCategory = async(req, res) => {
   }
 }
 
+const editCategory = async(req, res)=>{
+  try {
+    console.log(req.params.id);
+    await categoryModel.updateOne({_id: req.params.id},{$set:{name: req.body.categoryName, description: req.body.description}})
+    if(req.file){
+      const img = await cloudinary.uploader.upload(req.file.path);
+      await categoryModel.updateOne({_id: req.params.id},{$set:{name: req.body.categoryName,Image:img.secure_url,description: req.body.description}})
+    }
+    res.status(200).json({done: true})
+  } catch {
+    res.status(500).json()
+  }
+}
+
 
 module.exports = {
     loginSubmit,
@@ -211,5 +225,6 @@ module.exports = {
     unBlockWorker,
     fetchUsers,
     blockUser,
-    unBlockUser
+    unBlockUser,
+    editCategory
 }
