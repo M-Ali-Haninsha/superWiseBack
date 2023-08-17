@@ -33,6 +33,9 @@ const workerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    image: {
+        type: String
+    },
     isVerified: {
         type: Boolean,
         required: true
