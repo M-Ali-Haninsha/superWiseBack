@@ -116,8 +116,6 @@ const mail = (email, otp) => {
 
   const workerLogin = async(req, res) => {
     try{
-      console.log('entered');
-      console.log(req.body);
       const email = req.body.email;
       const password = req.body.password;
       const worker = await workerModel.findOne({ email: email });
@@ -138,9 +136,36 @@ const mail = (email, otp) => {
     }
   }
 
+  const getWorkerDetails = async(req, res)=>{
+    try {
+      const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, secretKey);
+        const findedValue = await workerModel.findOne({_id: decoded.value._id}).populate("department")
+        res.status(200).json({data:findedValue})
+    }catch {
+      res.status(500).json()
+    }
+  }
+
+  const editPhoto = async(req, res)=>{
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const result = await cloudinary.uploader.upload(req.file.path); 
+      await workerModel.updateOne({_id: decoded.value._id},{$set:{image: result.secure_url}})
+      res.status(200).json({done:true})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     signupSubmit,
     otpProceed,
     getCategory,
-    workerLogin
+    workerLogin,
+    getWorkerDetails,
+    editPhoto
 }

@@ -1,5 +1,6 @@
 const categoryModel = require('../models/category')
 const userModel = require('../models/userModel')
+const workerModel = require('../models/workerModel')
 const { otpGen } = require('../configurations/otpGenerator')
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
@@ -122,10 +123,31 @@ const userLogin = async(req, res) => {
     }
   }
 
+  const getWorkers = async(req, res)=> {
+    try {
+      const workers = await workerModel.find({department:req.params.id, isVerified:true}).populate("department")
+      res.status(200).json({data: workers})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
+  const workerDetails = async(req, res)=>{
+    try {
+      console.log('entered');
+      console.log(req.params.id);
+      const workerData = await workerModel.findOne({_id:req.params.id}).populate("department")
+      res.status(200).json({data: workerData})
+    } catch {
+      res.status(500).json()
+    }
+  }
 
 module.exports = {
     getCategory,
     userSignup,
     userOtp,
-    userLogin
+    userLogin,
+    getWorkers,
+    workerDetails
 }
