@@ -161,6 +161,35 @@ const mail = (email, otp) => {
     }
   }
 
+  const editDetails = async(req, res)=>{
+    try {
+      console.log(req.body);
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const category = await categoryModel.findOne({ name: req.body.department });
+      console.log(category);
+      if (!category) {
+        return res.status(400).json({ error: 'Invalid department' });
+      }
+      await workerModel.updateOne(
+        { _id: decoded.value._id },
+        {
+          $set: {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            department: category.id,
+            phoneNo: req.body.phoneNo,
+            district: req.body.location,
+          },
+        }
+      );
+      res.status(200).json({updated:'data updated'})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 
 
   const fetchRequest = async(req, res)=> {
@@ -190,5 +219,6 @@ module.exports = {
     workerLogin,
     getWorkerDetails,
     editPhoto,
+    editDetails,
     fetchRequest
 }

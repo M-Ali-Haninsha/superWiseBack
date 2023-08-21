@@ -66,7 +66,6 @@ const userSignup = async(req, res)=> {
           } else {
             otp = otpGen();
             userData = req.body;
-            console.log('workerData',userData);
             console.log('this is otp', otp);
             mail(req.body.email, otp);
             res.status(200).json({"otpGen":true})
@@ -82,13 +81,14 @@ const userOtp = async(req, res)=> {
         const sentOtp = otp;
         if (Eotp == sentOtp) {
           const userDetails = userData;
-          const { firstName, lastName, email, password } = userDetails;
+          const { firstName, lastName, email, password, phoneNo } = userDetails;
           const hashpassword = await bcryptPassword(password);
             const user = {
               firstName: firstName,
               lastName: lastName,
               email: email,
               password: hashpassword,
+              phone: phoneNo,
               isBlocked:false
             };
             await userModel.insertMany([user]);

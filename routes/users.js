@@ -12,6 +12,7 @@ router.get('/FetchCategory', workerController.getCategory)
 router.post('/workerLogin', workerController.workerLogin)
 router.get('/fetchWorkerData',jwt, workerController.getWorkerDetails)
 router.put('/workerEditProfilePhoto', jwt,multerConfig.single('file'), workerController.editPhoto)
+router.put('/workerEditProfileData', jwt, workerController.editDetails)
 router.get('/fetchUserRequest',jwt, workerController.fetchRequest)
 
 //users
