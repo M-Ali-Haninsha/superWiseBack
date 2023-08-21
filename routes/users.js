@@ -14,7 +14,9 @@ router.get('/fetchWorkerData',jwt, workerController.getWorkerDetails)
 router.put('/workerEditProfilePhoto', jwt,multerConfig.single('file'), workerController.editPhoto)
 router.put('/workerEditProfileData', jwt, workerController.editDetails)
 router.get('/fetchUserRequest',jwt, workerController.fetchRequest)
-
+router.put('/workAccept', jwt, workerController.workAccept)
+router.put('/workReject', jwt, workerController.workReject)
+router.get('/fetchAcceptedWorks', jwt, workerController.acceptedWorks)
 //users
 router.get('/fetchCategories', userController.getCategory)
 router.post('/userSignup', userController.userSignup)
