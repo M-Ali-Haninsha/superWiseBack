@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const secretKey = 'your-secret-key';
+const cloudinary = require('../configurations/cloudinaryConfig')
 
 const bcryptPassword = async (password) => {
     try {
@@ -81,7 +82,7 @@ const userOtp = async(req, res)=> {
         const sentOtp = otp;
         if (Eotp == sentOtp) {
           const userDetails = userData;
-          const { firstName, lastName, email, password, phoneNo } = userDetails;
+          const { firstName, lastName, email, password, phoneNo, location } = userDetails;
           const hashpassword = await bcryptPassword(password);
             const user = {
               firstName: firstName,
@@ -89,6 +90,7 @@ const userOtp = async(req, res)=> {
               email: email,
               password: hashpassword,
               phone: phoneNo,
+              location: location,
               isBlocked:false
             };
             await userModel.insertMany([user]);
@@ -175,6 +177,49 @@ const userLogin = async(req, res) => {
     }
   }
 
+  const getUserData = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+
+      const data = await userModel.findOne({_id:userId})
+
+      res.status(200).json({fetchedData: data})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
+  const editPhoto = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+      const result = await cloudinary.uploader.upload(req.file.path);
+      const data = await userModel.updateOne({_id:userId}, {$set:{image: result.secure_url}})
+      res.status(200).json({done: true})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
+  const hiredWorks = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+      
+      const worker = await workerModel.find({ 'requests.userInfo': userId }).populate('department')
+      res.status(200).json({worker})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     getCategory,
     userSignup,
@@ -182,5 +227,8 @@ module.exports = {
     userLogin,
     getWorkers,
     workerDetails,
-    hireWorker
+    hireWorker,
+    getUserData,
+    editPhoto,
+    hiredWorks
 }
