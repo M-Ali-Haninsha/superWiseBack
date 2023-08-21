@@ -161,11 +161,34 @@ const mail = (email, otp) => {
     }
   }
 
+
+
+  const fetchRequest = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id
+
+      const worker = await workerModel.findById(workerId).populate('requests.userInfo');
+
+      if(!worker) {
+        return res.status(200).json({ error: 'no requests' });
+      }
+
+      const requests = worker.requests.filter(request => !request.accepted);
+      res.status(200).json({ requests });
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     signupSubmit,
     otpProceed,
     getCategory,
     workerLogin,
     getWorkerDetails,
-    editPhoto
+    editPhoto,
+    fetchRequest
 }

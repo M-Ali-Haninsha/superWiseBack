@@ -36,6 +36,18 @@ const workerSchema = new mongoose.Schema({
     image: {
         type: String
     },
+    requests: [{
+        userInfo: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'userData'
+        },
+        requirement: {
+            type: String
+        },
+        accepted: {
+            type : Boolean
+        }
+    }],
     isVerified: {
         type: Boolean,
         required: true
