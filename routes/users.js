@@ -12,7 +12,7 @@ router.get('/FetchCategory', workerController.getCategory)
 router.post('/workerLogin', workerController.workerLogin)
 router.get('/fetchWorkerData',jwt, workerController.getWorkerDetails)
 router.put('/workerEditProfilePhoto', jwt,multerConfig.single('file'), workerController.editPhoto)
-
+router.get('/fetchUserRequest',jwt, workerController.fetchRequest)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
@@ -21,5 +21,6 @@ router.post('/userOtp', userController.userOtp)
 router.post('/userLogin', userController.userLogin)
 router.get('/fetchWorkers/:id', userController.getWorkers)
 router.get('/fetchWorkerDetails/:id', userController.workerDetails)
+router.post('/hireWorker/:id', jwt, userController.hireWorker)
 
 module.exports = router;

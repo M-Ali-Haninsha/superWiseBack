@@ -134,10 +134,42 @@ const userLogin = async(req, res) => {
 
   const workerDetails = async(req, res)=>{
     try {
-      console.log('entered');
-      console.log(req.params.id);
       const workerData = await workerModel.findOne({_id:req.params.id}).populate("department")
       res.status(200).json({data: workerData})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
+  const hireWorker = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      let userId = decoded.value._id
+
+    const existingWorker = await workerModel.findOne({
+      _id: req.params.id,
+      'requests.userInfo': userId
+  });
+
+  if (existingWorker) {
+      return res.status(200).json({ error: 'User already has a request.' });
+  }
+
+    const newRequest = {
+      userInfo: userId,
+      requirement: req.body.description, 
+      accepted: false 
+    }; 
+
+    await workerModel.updateOne(
+        { _id: req.params.id },
+        { $push: { requests: newRequest } },
+        { upsert:true }
+    );
+
+      res.status(200).json({done:true})
     } catch {
       res.status(500).json()
     }
@@ -149,5 +181,6 @@ module.exports = {
     userOtp,
     userLogin,
     getWorkers,
-    workerDetails
+    workerDetails,
+    hireWorker
 }
