@@ -169,7 +169,7 @@ const mail = (email, otp) => {
       const category = await categoryModel.findOne({ name: req.body.department });
       console.log(category);
       if (!category) {
-        return res.status(400).json({ error: 'Invalid department' });
+        return res.status(200).json({ error: 'Invalid department' });
       }
       await workerModel.updateOne(
         { _id: decoded.value._id },
