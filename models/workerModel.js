@@ -36,6 +36,9 @@ const workerSchema = new mongoose.Schema({
     image: {
         type: String
     },
+    description: {
+        type:String
+    },
     requests: [{
         userInfo: {
             type: mongoose.Schema.Types.ObjectId,
@@ -43,6 +46,9 @@ const workerSchema = new mongoose.Schema({
         },
         requirement: {
             type: String
+        },
+        file: {
+            type : String
         },
         accepted: {
             type : Boolean

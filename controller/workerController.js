@@ -163,7 +163,6 @@ const mail = (email, otp) => {
 
   const editDetails = async(req, res)=>{
     try {
-      console.log(req.body);
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
       const decoded = jwt.verify(token, secretKey);
@@ -185,6 +184,18 @@ const mail = (email, otp) => {
         }
       );
       res.status(200).json({updated:'data updated'})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
+  const updateDescription = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      await workerModel.updateOne({_id:decoded.value._id}, {$set: {description: req.body.description}},{upsert:true})
+      res.status(200).json({done:true})
     } catch {
       res.status(500).json()
     }
@@ -309,5 +320,6 @@ module.exports = {
     fetchRequest,
     workAccept,
     workReject,
-    acceptedWorks
+    acceptedWorks,
+    updateDescription
 }
