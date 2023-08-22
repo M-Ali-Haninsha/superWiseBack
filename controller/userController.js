@@ -220,6 +220,30 @@ const userLogin = async(req, res) => {
     }
   }
 
+  const updateDetails = async(req, res)=> {
+    try {
+      console.log(req.body);
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+      await userModel.updateOne(
+        { _id: userId },
+        {
+          $set: {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phone: req.body.phoneNo,
+            location: req.body.location,
+          },
+        }
+        )
+      res.status(200).json({done:true})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     getCategory,
     userSignup,
@@ -230,5 +254,6 @@ module.exports = {
     hireWorker,
     getUserData,
     editPhoto,
-    hiredWorks
+    hiredWorks,
+    updateDetails
 }
