@@ -29,5 +29,6 @@ router.post('/hireWorker/:id', jwt, userController.hireWorker)
 router.get('/fetchUserData',jwt, userController.getUserData)
 router.put('/updatePhoto',jwt, multerConfig.single('file'), userController.editPhoto)
 router.get('/hiredWorkers', jwt, userController.hiredWorks)
+router.put('/updateUserData', jwt, userController.updateDetails)
 
 module.exports = router;
