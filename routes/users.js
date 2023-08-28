@@ -18,6 +18,8 @@ router.put('/workAccept', jwt, workerController.workAccept)
 router.put('/workReject', jwt, workerController.workReject)
 router.get('/fetchAcceptedWorks', jwt, workerController.acceptedWorks)
 router.put('/updateDescription', jwt, workerController.updateDescription)
+router.get('/viewProgress/:id', jwt, workerController.viewProgress)
+router.put('/updateWorkProgress/:id', jwt, workerController.updateWorkStatus)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
@@ -31,5 +33,6 @@ router.get('/fetchUserData',jwt, userController.getUserData)
 router.put('/updatePhoto',jwt, multerConfig.single('file'), userController.editPhoto)
 router.get('/hiredWorkers', jwt, userController.hiredWorks)
 router.put('/updateUserData', jwt, userController.updateDetails)
+router.get('/getProgressValue/:id', jwt, userController.getProgressValue)
 
 module.exports = router;

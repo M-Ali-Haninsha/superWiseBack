@@ -1,4 +1,5 @@
 const workerModel = require('../models/workerModel')
+const clientModel = require('../models/userModel')
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const { otpGen } = require('../configurations/otpGenerator')
@@ -309,6 +310,53 @@ const mail = (email, otp) => {
       res.status(500).json()
     }
   }
+
+  const viewProgress = async(req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id
+
+      let data = await clientModel.findOne({_id:req.params.id, 'workStatus.workerId': workerId }).populate('workStatus')
+      console.log(data);
+      res.status(200).json(data)
+    } catch {
+      res.status(500).json({error:'server error'})
+    }
+  }
+
+  const updateWorkStatus = async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id
+
+      let currentStatus = 'work yet to be started'
+
+      if(req.body.progress == 33) {
+         currentStatus = 'work started'
+      } else if(req.body.progress == 66) {
+        currentStatus = 'work under process'
+      } else if(req.body.progress) {
+        currentStatus = 'work completed'
+      }
+
+      const updates = {
+        workerId:workerId, 
+        progressBar: req.body.progress,
+        status: currentStatus,
+        amount: 0,
+      }
+
+      await clientModel.updateOne({_id: req.params.id}, {$set: {workStatus: updates}}, {upsert: true})
+      res.status(200).json({updated: 'status updated'})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     signupSubmit,
     otpProceed,
@@ -321,5 +369,7 @@ module.exports = {
     workAccept,
     workReject,
     acceptedWorks,
-    updateDescription
+    updateDescription,
+    updateWorkStatus,
+    viewProgress
 }
