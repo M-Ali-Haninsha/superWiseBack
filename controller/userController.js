@@ -251,6 +251,19 @@ const userLogin = async(req, res) => {
     }
   }
 
+  const getProgressValue = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+      let value = await userModel.findOne({_id:userId, 'workStatus.workerId': req.params.id})
+      res.status(200).json({data: value})
+    } catch {
+      res.status(500).json()
+    }
+  }
+
 module.exports = {
     getCategory,
     userSignup,
@@ -262,5 +275,6 @@ module.exports = {
     getUserData,
     editPhoto,
     hiredWorks,
-    updateDetails
+    updateDetails,
+    getProgressValue
 }

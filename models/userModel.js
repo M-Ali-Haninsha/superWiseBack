@@ -26,6 +26,22 @@ const userSchema = new mongoose.Schema({
     image: {
         type: String
     },
+    workStatus: [{
+        workerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'workerData'
+        },
+        progressBar: {
+            type: Number
+        },
+        status: {
+            type: String
+        },
+        amount: {
+            type: Number
+        }
+
+    }],
     isBlocked: {
         type: Boolean
     }
