@@ -326,6 +326,24 @@ const mail = (email, otp) => {
     }
   }
 
+  const getClientData = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id
+
+      let d = await workerModel.findOne({_id:workerId, 'requests.userInfo':req.params.id})
+
+      
+
+      let client = await clientModel.findOne({_id:req.params.id})
+      res.status(200).json({data: d})
+    } catch {
+      res.status(500).json({err:'server error'})
+    }
+  }
+
   const updateWorkStatus = async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
@@ -334,20 +352,23 @@ const mail = (email, otp) => {
       const workerId = decoded.value._id
 
       let currentStatus = 'work yet to be started'
+      let progress = 0
 
-      if(req.body.progress == 33) {
+      if(req.body.progress == 20) {
          currentStatus = 'work started'
-      } else if(req.body.progress == 66) {
+         progress = 10
+      } else if(req.body.progress == 50) {
         currentStatus = 'work under process'
+        progress = 50
       } else if(req.body.progress) {
         currentStatus = 'work completed'
+        progress = 100
       }
 
       const updates = {
         workerId:workerId, 
-        progressBar: req.body.progress,
+        progressBar: progress,
         status: currentStatus,
-        amount: 0,
       }
 
       await clientModel.updateOne({_id: req.params.id}, {$set: {workStatus: updates}}, {upsert: true})
@@ -371,5 +392,6 @@ module.exports = {
     acceptedWorks,
     updateDescription,
     updateWorkStatus,
-    viewProgress
+    viewProgress,
+    getClientData
 }

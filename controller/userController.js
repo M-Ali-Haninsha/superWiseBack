@@ -7,6 +7,14 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const secretKey = 'your-secret-key';
 const cloudinary = require('../configurations/cloudinaryConfig')
+const Razorpay = require('razorpay');
+
+var instance = new Razorpay({
+  key_id: 'rzp_test_TDRJfd82mop9MS',
+  key_secret:'g845t1p06XsgYkrcjXYSfFCY',
+});
+
+
 
 const bcryptPassword = async (password) => {
     try {
@@ -264,6 +272,60 @@ const userLogin = async(req, res) => {
     }
   }
 
+  // const razorpay = new Razorpay({
+  //   key_id: 'rzp_test_TDRJfd82mop9MS',
+  //   key_secret: 'g845t1p06XsgYkrcjXYSfFCY'
+  // });
+
+
+  const razorpayment = async(req, res)=> {
+    try {
+      console.log('entered');
+      if(req.body) {
+        console.log(req.body);
+      }
+      var options = {
+        amount: req.body.data * 100,
+        currency: "INR",
+        receipt: 'Order0141',
+        payment_capture: 0,
+      };
+      instance.orders.create(options, (err, order)=> {
+        if(err) {
+          console.log(err);
+          next(err);
+        }
+        if(order) {
+          console.log('database updated');
+          res.json({success:true, status:"Order created Successfully", value: order, key:'rzp_test_TDRJfd82mop9MS'})
+        }
+      })
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+  };
+
+  // const razorpayment = async(req, res)=> {
+  //   try {
+  //     const { payment_id, razorpay_signature } = req.body; 
+  
+  //     const attributes = `${payment_id}`;
+  //     const generatedSignature = razorpay.utils.generateHmacSha256(attributes, 'g845t1p06XsgYkrcjXYSfFCY');
+  
+  //     if (generatedSignature === razorpay_signature) {
+      
+        
+  //       return res.json({ status: 'success', message: 'Payment successful' });
+  //     } else {
+  //       return res.status(400).json({ status: 'error', message: 'Payment verification failed: Signature mismatch' });
+  //     }
+  //   } catch (error) {
+  //     console.error('Error verifying payment:', error);
+  //     return res.status(500).json({ success: false, message: 'Internal server error.' });
+  //   }
+  // }
+
 module.exports = {
     getCategory,
     userSignup,
@@ -276,5 +338,6 @@ module.exports = {
     editPhoto,
     hiredWorks,
     updateDetails,
-    getProgressValue
+    getProgressValue,
+    razorpayment
 }

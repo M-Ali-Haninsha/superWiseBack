@@ -37,10 +37,6 @@ const userSchema = new mongoose.Schema({
         status: {
             type: String
         },
-        amount: {
-            type: Number
-        }
-
     }],
     isBlocked: {
         type: Boolean
