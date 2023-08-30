@@ -20,6 +20,7 @@ router.get('/fetchAcceptedWorks', jwt, workerController.acceptedWorks)
 router.put('/updateDescription', jwt, workerController.updateDescription)
 router.get('/viewProgress/:id', jwt, workerController.viewProgress)
 router.put('/updateWorkProgress/:id', jwt, workerController.updateWorkStatus)
+// router.get('/getClientData/:id',jwt, workerController.getClientData)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
@@ -34,5 +35,6 @@ router.put('/updatePhoto',jwt, multerConfig.single('file'), userController.editP
 router.get('/hiredWorkers', jwt, userController.hiredWorks)
 router.put('/updateUserData', jwt, userController.updateDetails)
 router.get('/getProgressValue/:id', jwt, userController.getProgressValue)
+router.post('/razorpay', userController.razorpayment)
 
 module.exports = router;
