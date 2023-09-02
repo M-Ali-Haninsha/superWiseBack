@@ -38,6 +38,25 @@ const userSchema = new mongoose.Schema({
             type: String
         },
     }],
+    payment: [{
+        workerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'workerData'
+        },
+        type: {
+            type: String
+        },
+        amount: {
+            type: Number
+        },
+        date: {
+            type: Date,
+            default: Date.now
+        },
+        status: {
+            type: String,
+        }
+    }],
     isBlocked: {
         type: Boolean
     }
