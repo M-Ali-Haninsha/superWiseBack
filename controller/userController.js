@@ -351,10 +351,8 @@ const userLogin = async(req, res) => {
 
   const showRating = async(req, res)=> {
     try {
-      console.log('worker',req.params.id);
       let workerId = req.params.id
       let data = await workerModel.findOne({_id:workerId}).populate('rating.userRef')
-      console.log('here is data',data.rating);
       res.status(200).json({rating: data.rating})
     } catch {
       res.status(500).json({error: 'internal server error'})
