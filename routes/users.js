@@ -20,7 +20,7 @@ router.get('/fetchAcceptedWorks', jwt, workerController.acceptedWorks)
 router.put('/updateDescription', jwt, workerController.updateDescription)
 router.get('/viewProgress/:id', jwt, workerController.viewProgress)
 router.put('/updateWorkProgress/:id', jwt, workerController.updateWorkStatus)
-// router.get('/getClientData/:id',jwt, workerController.getClientData)
+router.post('/postAmount/:id', jwt, workerController.postAmount)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
@@ -36,5 +36,8 @@ router.get('/hiredWorkers', jwt, userController.hiredWorks)
 router.put('/updateUserData', jwt, userController.updateDetails)
 router.get('/getProgressValue/:id', jwt, userController.getProgressValue)
 router.post('/razorpay', userController.razorpayment)
+router.get('/getAmount/:id',jwt, userController.getAmount)
+router.post('/rating/:id', jwt, userController.rating)
+router.get('/showRating/:id', userController.showRating)
 
 module.exports = router;

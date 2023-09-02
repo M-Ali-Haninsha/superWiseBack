@@ -154,7 +154,6 @@ const userLogin = async(req, res) => {
   const hireWorker = async(req, res)=> {
     try {
       console.log('body', req.body);
-      console.log('file', req.file);
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
       const decoded = jwt.verify(token, secretKey);
@@ -172,6 +171,7 @@ const userLogin = async(req, res) => {
       const newRequest = {
           userInfo: userId,
           requirement: req.body.description,
+          date: req.body.date,
           accepted: false
       };
   
@@ -237,7 +237,6 @@ const userLogin = async(req, res) => {
 
   const updateDetails = async(req, res)=> {
     try {
-      console.log(req.body);
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
       const decoded = jwt.verify(token, secretKey);
@@ -265,25 +264,43 @@ const userLogin = async(req, res) => {
       const token = authHeader && authHeader.split(' ')[1];
       const decoded = jwt.verify(token, secretKey);
       const userId = decoded.value._id
-      let value = await userModel.findOne({_id:userId, 'workStatus.workerId': req.params.id})
-      res.status(200).json({data: value})
+      let value = await userModel.findOne({_id:userId})
+      let newValue;
+      let status;
+      for(let x of value.workStatus) {
+        if(x.workerId == req.params.id) {
+          newValue = x.progressBar 
+        }
+      }
+      res.status(200).json({data: newValue})
     } catch {
       res.status(500).json()
     }
   }
 
-  // const razorpay = new Razorpay({
-  //   key_id: 'rzp_test_TDRJfd82mop9MS',
-  //   key_secret: 'g845t1p06XsgYkrcjXYSfFCY'
-  // });
+  const getAmount = async(req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+
+       let client = await userModel.findOne({_id:userId})
+       let amount;
+       for(let x of client.payment) {
+        if(x.workerId == req.params.id){
+          amount = x.amount
+        }
+       }
+      res.status(200).json({amount: amount})
+    } catch {
+      res.status(500).json({error: 'server error'})
+    }
+  }
 
 
   const razorpayment = async(req, res)=> {
     try {
-      console.log('entered');
-      if(req.body) {
-        console.log(req.body);
-      }
       var options = {
         amount: req.body.data * 100,
         currency: "INR",
@@ -302,29 +319,47 @@ const userLogin = async(req, res) => {
       })
     } catch (error) {
       console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error.' });
+      res.status(500).json({ success: false, message: 'Internal server error.'});
     }
   };
 
-  // const razorpayment = async(req, res)=> {
-  //   try {
-  //     const { payment_id, razorpay_signature } = req.body; 
-  
-  //     const attributes = `${payment_id}`;
-  //     const generatedSignature = razorpay.utils.generateHmacSha256(attributes, 'g845t1p06XsgYkrcjXYSfFCY');
-  
-  //     if (generatedSignature === razorpay_signature) {
-      
-        
-  //       return res.json({ status: 'success', message: 'Payment successful' });
-  //     } else {
-  //       return res.status(400).json({ status: 'error', message: 'Payment verification failed: Signature mismatch' });
-  //     }
-  //   } catch (error) {
-  //     console.error('Error verifying payment:', error);
-  //     return res.status(500).json({ success: false, message: 'Internal server error.' });
-  //   }
-  // }
+  const rating = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+
+      let finded = await workerModel.findOne({_id:req.params.id, 'rating.userRef':userId})
+
+      if(finded) {
+        console.log('finded');
+      } else {
+        let test = req.body.comment
+      let ratingData = {
+        userRef: userId,
+        starValue: req.body.starValue,
+        comment: test.comment,
+      }
+      await workerModel.updateOne({_id:req.params.id}, {$push: {rating:ratingData}})
+      res.status(200).json({done:true})
+      }
+    } catch {
+      res.status(500).json({err:'server error'})
+    }
+  }
+
+  const showRating = async(req, res)=> {
+    try {
+      console.log('worker',req.params.id);
+      let workerId = req.params.id
+      let data = await workerModel.findOne({_id:workerId}).populate('rating.userRef')
+      console.log('here is data',data.rating);
+      res.status(200).json({rating: data.rating})
+    } catch {
+      res.status(500).json({error: 'internal server error'})
+    }
+  }
 
 module.exports = {
     getCategory,
@@ -339,5 +374,8 @@ module.exports = {
     hiredWorks,
     updateDetails,
     getProgressValue,
-    razorpayment
+    razorpayment,
+    getAmount,
+    rating,
+    showRating
 }

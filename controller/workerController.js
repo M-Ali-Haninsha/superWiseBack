@@ -247,6 +247,8 @@ const mail = (email, otp) => {
       }
     
       worker.requests[requestIndex].accepted = true;
+
+      await clientModel.updateOne({_id:requestId}, {$set:{'workStatus.status':'work yet to be started'}})
     
       await worker.save();
     
@@ -318,66 +320,171 @@ const mail = (email, otp) => {
       const decoded = jwt.verify(token, secretKey);
       const workerId = decoded.value._id
 
-      let data = await clientModel.findOne({_id:req.params.id, 'workStatus.workerId': workerId }).populate('workStatus')
-      console.log(data);
+      let data = await clientModel.findOne({_id:req.params.id})
+      let newData;
+      for(let x of data.workStatus) {
+        if(x.workerId == workerId) {
+          newData = x.progressBar
+        }
+      }
       res.status(200).json(data)
     } catch {
       res.status(500).json({error:'server error'})
     }
   }
 
-  const getClientData = async(req, res)=> {
-    try {
-      const authHeader = req.headers.authorization;
-      const token = authHeader && authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, secretKey);
-      const workerId = decoded.value._id
-
-      let d = await workerModel.findOne({_id:workerId, 'requests.userInfo':req.params.id})
-
-      
-
-      let client = await clientModel.findOne({_id:req.params.id})
-      res.status(200).json({data: d})
-    } catch {
-      res.status(500).json({err:'server error'})
-    }
-  }
 
   const updateWorkStatus = async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
       const decoded = jwt.verify(token, secretKey);
-      const workerId = decoded.value._id
+      const workerId = decoded.value._id;
+  
+      const workerStatus = {
+        workerId: workerId,
+        progressBar: req.body.progress,
+        status: getStatusFromProgress(req.body.progress)
+      };
+  
+      const user = await clientModel.findOne({ _id: req.params.id });
+  
+      console.log('eee', user);
 
-      let currentStatus = 'work yet to be started'
-      let progress = 0
-
-      if(req.body.progress == 20) {
-         currentStatus = 'work started'
-         progress = 10
-      } else if(req.body.progress == 50) {
-        currentStatus = 'work under process'
-        progress = 50
-      } else if(req.body.progress) {
-        currentStatus = 'work completed'
-        progress = 100
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
       }
+  
+      const existingWorkerStatusIndex = user.workStatus.findIndex(
+        (status) => status.workerId.toString() === workerId.toString()
+      );
 
-      const updates = {
-        workerId:workerId, 
-        progressBar: progress,
-        status: currentStatus,
+      console.log('find',existingWorkerStatusIndex);
+  
+      if (existingWorkerStatusIndex === -1) {
+        user.workStatus.push(workerStatus);
+      } else {
+        user.workStatus[existingWorkerStatusIndex] = workerStatus;
       }
-
-      await clientModel.updateOne({_id: req.params.id}, {$set: {workStatus: updates}}, {upsert: true})
-      res.status(200).json({updated: 'status updated'})
-    } catch {
-      res.status(500).json()
+  
+      await user.save();
+  
+      res.status(200).json({ updated: 'status updated' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+  function getStatusFromProgress(progress) {
+    if (progress === 20) {
+      return 'work started';
+    } else if (progress === 50) {
+      return 'work under process';
+    } else if (progress === 100) {
+      return 'work completed';
+    } else {
+      return 'work status unknown';
     }
   }
+  
 
+
+  // const updateWorkStatus = async (req, res) => {
+  //   try {
+  //     const authHeader = req.headers.authorization;
+  //     const token = authHeader && authHeader.split(' ')[1];
+  //     const decoded = jwt.verify(token, secretKey);
+  //     const workerId = decoded.value._id
+
+  //     console.log('wor',workerId);
+  //     console.log(req.body.progress);
+  //     console.log(req.params.id);
+
+  //     let currentStatus = 'work yet to be started'
+  //     let progress = 0
+
+  //     if(req.body.progress == 20) {
+  //        currentStatus = 'work started'
+  //        progress = 10
+  //     } else if(req.body.progress == 50) {
+  //       currentStatus = 'work under process'
+  //       progress = 50
+  //     } else if(req.body.progress) {
+  //       currentStatus = 'work completed'
+  //       progress = 100
+  //     }
+
+  //     const updates = {
+  //       workerId:workerId, 
+  //       progressBar: progress,
+  //       status: currentStatus,
+  //     }
+  //     let check =  await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId })
+  //     if(!check) {
+  //       await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId }, {$push: {workStatus: updates}})
+  //     }
+
+  //     await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId }, {$set: {workStatus: updates}})
+    //  const x=  await clientModel.findOneAndUpdate(
+    //     { _id: req.params.id },
+    //     { $set: { 'workStatus.$': updates } } 
+    // );
+  //     res.status(200).json({updated: 'status updated'})
+  //   } catch(err) {
+  //     console.log(err);
+  //     res.status(500).json()
+  //   }
+  // }
+
+  const postAmount = async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id;
+  
+      if (req.body.selectedType === 'normal') {
+        const workStatus = await clientModel.findOne({
+          _id: req.params.id,
+          'workStatus.workerId': workerId,
+        });
+        if (workStatus && workStatus.workStatus[0].status === 'work completed') {
+          const paymentData = {
+            workerId: workerId,
+            type: req.body.type,
+            amount: req.body.amount,
+            status: 'pending',
+          };
+  
+          const existingPayment = workStatus.payment.find(
+            (payment) => payment.workerId.toString() === workerId
+          );
+  
+          if (existingPayment) {
+            await clientModel.findOneAndUpdate(
+              {
+                _id: req.params.id,
+                'payment.workerId': workerId,
+              },
+              { $set: { 'payment.$': paymentData } }
+            );
+          } else {
+            await clientModel.updateOne(
+              { _id: req.params.id },
+              { $push: { payment: paymentData } }
+            );
+          }
+          res.status(200).json({ done: true });
+        } else {
+          res.status(422).json({ workStatus: 'work not completed' });
+        }
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'server error' });
+    }
+  };
+  
 module.exports = {
     signupSubmit,
     otpProceed,
@@ -393,5 +500,5 @@ module.exports = {
     updateDescription,
     updateWorkStatus,
     viewProgress,
-    getClientData
+    postAmount
 }

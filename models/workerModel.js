@@ -50,8 +50,27 @@ const workerSchema = new mongoose.Schema({
         file: {
             type : String
         },
+        date: {
+            type : Date
+        },
         accepted: {
             type : Boolean
+        }
+    }],
+    rating: [{
+        userRef: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'userData'
+        },
+        starValue: {
+            type: Number,
+        },
+        comment: {
+            type: String
+        },
+        date: {
+            type: Date,
+            default: Date.now
         }
     }],
     isVerified: {
