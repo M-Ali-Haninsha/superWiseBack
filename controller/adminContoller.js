@@ -221,11 +221,9 @@ const unBlockUser = async(req, res) => {
       ])
         .exec()
         .then((result) => {
-          console.log(result);
           res.status(200).json(result);
         })
         .catch((error) => {
-          console.error('Error:', error);
           res.status(500).json({ success: false, message: 'Internal server error.' });
         });
     } catch {
