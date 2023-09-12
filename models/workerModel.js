@@ -55,6 +55,9 @@ const workerSchema = new mongoose.Schema({
         },
         accepted: {
             type : Boolean
+        },
+        paymentStatus: {
+            type: String
         }
     }],
     rating: [{
@@ -73,6 +76,9 @@ const workerSchema = new mongoose.Schema({
             default: Date.now
         }
     }],
+    income: {
+        type: Number
+    },
     isVerified: {
         type: Boolean,
         required: true

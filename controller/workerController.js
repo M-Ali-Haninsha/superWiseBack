@@ -388,54 +388,65 @@ const mail = (email, otp) => {
     }
   }
   
+  const pushImage = async (req, res) => {
+    try {
 
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const findedWorkerId = decoded.value._id;
 
-  // const updateWorkStatus = async (req, res) => {
-  //   try {
-  //     const authHeader = req.headers.authorization;
-  //     const token = authHeader && authHeader.split(' ')[1];
-  //     const decoded = jwt.verify(token, secretKey);
-  //     const workerId = decoded.value._id
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No files provided' });
+      }
+  
+      const imageUrls = [];
+  
+      for (const file of req.files) {
+        const result = await cloudinary.uploader.upload(file.path);
+  
+        if (!result.secure_url) {
+          console.error('Image upload failed');
+          continue;
+        }
+  
+        imageUrls.push(result.secure_url);
+      }
+  
+      if (imageUrls.length === 0) {
+        return res.status(500).json({ error: 'No images uploaded successfully' });
+      }
+  
+      const workerId = findedWorkerId;
+  
+      const imagesWithWorkerId = imageUrls.map((imageUrl) => ({ workerId, imageUrl }));
+  
+      const user = await clientModel.findById(req.params.id);
+  
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      const workStatusObject = user.workStatus.find((status) => status.workerId.toString() === workerId);
+  
+      if (!workStatusObject) {
+        return res.status(404).json({ error: 'Worker not found in workStatus' });
+      }
+  
+      workStatusObject.images.push(...imagesWithWorkerId);
+  
+      await user.save();
+  
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+  
+  
 
-  //     console.log('wor',workerId);
-  //     console.log(req.body.progress);
-  //     console.log(req.params.id);
-
-  //     let currentStatus = 'work yet to be started'
-  //     let progress = 0
-
-  //     if(req.body.progress == 20) {
-  //        currentStatus = 'work started'
-  //        progress = 10
-  //     } else if(req.body.progress == 50) {
-  //       currentStatus = 'work under process'
-  //       progress = 50
-  //     } else if(req.body.progress) {
-  //       currentStatus = 'work completed'
-  //       progress = 100
-  //     }
-
-  //     const updates = {
-  //       workerId:workerId, 
-  //       progressBar: progress,
-  //       status: currentStatus,
-  //     }
-  //     let check =  await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId })
-  //     if(!check) {
-  //       await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId }, {$push: {workStatus: updates}})
-  //     }
-
-  //     await clientModel.updateOne({_id: req.params.id, 'workStatus.workerId': workerId }, {$set: {workStatus: updates}})
-    //  const x=  await clientModel.findOneAndUpdate(
-    //     { _id: req.params.id },
-    //     { $set: { 'workStatus.$': updates } } 
-    // );
-  //     res.status(200).json({updated: 'status updated'})
-  //   } catch(err) {
-  //     console.log(err);
-  //     res.status(500).json()
-  //   }
-  // }
 
   const postAmount = async (req, res) => {
     try {
@@ -500,5 +511,6 @@ module.exports = {
     updateDescription,
     updateWorkStatus,
     viewProgress,
-    postAmount
+    postAmount,
+    pushImage
 }
