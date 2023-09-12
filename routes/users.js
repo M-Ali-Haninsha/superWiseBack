@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const workerController = require('../controller/workerController')
 const userController = require('../controller/userController')
+const paymentController = require('../controller/paymentController')
+const chatController = require('../controller/chatController')
 const multerConfig = require('../configurations/multerConfig')
-const jwt = require('../middleware/jwt')
+const jwt = require('../middleware/jwt');
+const category = require('../models/category');
 
 //workers
 router.post('/workerSignup',multerConfig.single('file'), workerController.signupSubmit)
@@ -21,6 +24,7 @@ router.put('/updateDescription', jwt, workerController.updateDescription)
 router.get('/viewProgress/:id', jwt, workerController.viewProgress)
 router.put('/updateWorkProgress/:id', jwt, workerController.updateWorkStatus)
 router.post('/postAmount/:id', jwt, workerController.postAmount)
+router.post('/pushImages/:id', jwt, multerConfig.array('files', 3), workerController.pushImage)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
@@ -35,9 +39,16 @@ router.put('/updatePhoto',jwt, multerConfig.single('file'), userController.editP
 router.get('/hiredWorkers', jwt, userController.hiredWorks)
 router.put('/updateUserData', jwt, userController.updateDetails)
 router.get('/getProgressValue/:id', jwt, userController.getProgressValue)
-router.post('/razorpay', userController.razorpayment)
+router.post('/razorpay',jwt, paymentController.razorpayment)
 router.get('/getAmount/:id',jwt, userController.getAmount)
 router.post('/rating/:id', jwt, userController.rating)
 router.get('/showRating/:id', userController.showRating)
+router.get('/getProgressImages/:id', jwt, userController.progressImages)
+router.get('/clientDataMessage', jwt, userController.clientDataMessage)
+router.get('/workerDataMessage/:id', jwt, userController.workDataMessage)
+router.get('/getPaymentData/:id', jwt, userController.getPaymentData)
+router.get('/workCompleteData/:id', jwt,paymentController.successPageData)
+router.get('/viewWorkHistory', jwt, userController.viewWorkHistory)
+
 
 module.exports = router;

@@ -1,5 +1,15 @@
 const mongoose = require('mongoose')
 
+const imageSchema = new mongoose.Schema({
+    workerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'workerData'
+    },
+    imageUrl: {
+      type: String
+    }
+  });
+
 const userSchema = new mongoose.Schema({
     firstName:{
         type:String,
@@ -34,9 +44,14 @@ const userSchema = new mongoose.Schema({
         progressBar: {
             type: Number
         },
+        images: [imageSchema],
         status: {
             type: String
         },
+        paymentStatus: {
+            type: String,
+            default: 'pending'
+        }
     }],
     payment: [{
         workerId: {
@@ -52,6 +67,10 @@ const userSchema = new mongoose.Schema({
         date: {
             type: Date,
             default: Date.now
+        },
+        payedDate: {
+            type: Date,
+            default: null 
         },
         status: {
             type: String,

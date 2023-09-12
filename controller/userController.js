@@ -7,12 +7,12 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const secretKey = 'your-secret-key';
 const cloudinary = require('../configurations/cloudinaryConfig')
-const Razorpay = require('razorpay');
+// const Razorpay = require('razorpay');
 
-var instance = new Razorpay({
-  key_id: 'rzp_test_TDRJfd82mop9MS',
-  key_secret:'g845t1p06XsgYkrcjXYSfFCY',
-});
+// var instance = new Razorpay({
+//   key_id: 'rzp_test_TDRJfd82mop9MS',
+//   key_secret:'g845t1p06XsgYkrcjXYSfFCY',
+// });
 
 
 
@@ -172,6 +172,7 @@ const userLogin = async(req, res) => {
           userInfo: userId,
           requirement: req.body.description,
           date: req.body.date,
+          paymentStatus:'pending',
           accepted: false
       };
   
@@ -228,7 +229,15 @@ const userLogin = async(req, res) => {
       const decoded = jwt.verify(token, secretKey);
       const userId = decoded.value._id
       
-      const worker = await workerModel.find({ 'requests.userInfo': userId }).populate('department')
+      // const worker = await workerModel.find({ 'requests.userInfo': userId }).populate('department')
+      const worker = await workerModel.find({
+        'requests': {
+          $elemMatch: {
+            'userInfo': userId,
+            'paymentStatus': { $ne: 'completed' }
+          }
+        }
+      }).populate('department');
       res.status(200).json({worker})
     } catch {
       res.status(500).json()
@@ -299,29 +308,29 @@ const userLogin = async(req, res) => {
   }
 
 
-  const razorpayment = async(req, res)=> {
-    try {
-      var options = {
-        amount: req.body.data * 100,
-        currency: "INR",
-        receipt: 'Order0141',
-        payment_capture: 0,
-      };
-      instance.orders.create(options, (err, order)=> {
-        if(err) {
-          console.log(err);
-          next(err);
-        }
-        if(order) {
-          console.log('database updated');
-          res.json({success:true, status:"Order created Successfully", value: order, key:'rzp_test_TDRJfd82mop9MS'})
-        }
-      })
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error.'});
-    }
-  };
+  // const razorpayment = async(req, res)=> {
+  //   try {
+  //     var options = {
+  //       amount: req.body.data * 100,
+  //       currency: "INR",
+  //       receipt: 'Order0141',
+  //       payment_capture: 0,
+  //     };
+  //     instance.orders.create(options, (err, order)=> {
+  //       if(err) {
+  //         console.log(err);
+  //         next(err);
+  //       }
+  //       if(order) {
+  //         console.log('database updated');
+  //         res.json({success:true, status:"Order created Successfully", value: order, key:'rzp_test_TDRJfd82mop9MS'})
+  //       }
+  //     })
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     res.status(500).json({ success: false, message: 'Internal server error.'});
+  //   }
+  // };
 
   const rating = async(req, res)=> {
     try {
@@ -359,6 +368,112 @@ const userLogin = async(req, res) => {
     }
   }
 
+  const progressImages = async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+  
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+  
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id;
+  
+      const user = await userModel.findOne({ _id: userId });
+  
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      const workerIdToFind = req.params.id;
+  
+      const workStatusObject = user.workStatus.find((status) => status.workerId.toString() === workerIdToFind);
+  
+      if (!workStatusObject) {
+        return res.status(404).json({ error: 'Worker not found in workStatus' });
+      }
+  
+      const progressImages = workStatusObject.images;
+  
+      res.status(200).json({ progressImages });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  const clientDataMessage = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+
+      let clientDataMessage = await userModel.findOne({_id:userId})
+      res.status(200).json({clientDataMessage})
+    } catch {
+      res.status(500).json({error:'server error'})
+    }
+  }
+
+  const workDataMessage = async(req, res)=> {
+    try {
+      let workerDataMessage = await workerModel.findOne({_id:req.params.id})
+      res.status(200).json({workerDataMessage})
+    } catch {
+      res.status(500).json({error:'server error'})
+    }
+  }
+
+  const getPaymentData = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+
+      let paymentData = await userModel.findOne({_id:userId, 'payment.workerId':req.params.id})
+      res.status(200).json({paymentData})
+    } catch {
+      res.status(500).json({error: 'internal server error'})
+    }
+  }
+
+  const viewWorkHistory = async(req, res)=> {
+    try {
+      console.log('entered');
+
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id
+    
+      const user = await userModel.findOne({ _id: userId }).populate({
+        path: 'workStatus.workerId',
+        populate: {
+          path: 'department',
+          model: 'category',
+        },
+      });
+    
+      if (user) {
+        const filteredWorkStatus = user.workStatus.filter((status) => status.paymentStatus === 'completed');
+    
+        user.workStatus = filteredWorkStatus;
+    
+        console.log(user);
+        res.status(200).json({ user });
+  } else {
+    console.log('No user found with the given ID.');
+  }
+    } catch {
+      res.status(500).json({error: 'internal server error'})
+    }
+  }
+  
+
+
 module.exports = {
     getCategory,
     userSignup,
@@ -372,8 +487,12 @@ module.exports = {
     hiredWorks,
     updateDetails,
     getProgressValue,
-    razorpayment,
     getAmount,
     rating,
-    showRating
+    showRating,
+    progressImages,
+    clientDataMessage,
+    workDataMessage,
+    getPaymentData,
+    viewWorkHistory
 }

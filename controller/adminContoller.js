@@ -169,55 +169,75 @@ const unBlockUser = async(req, res) => {
   }
 }
 
-const getCategory = async(req, res) => {
-  try{
-    const category = await categoryModel.find()
-    if(category) {
-      res.status(200).json({recievedCat: category})
+  const getIncome = async (req, res) => {
+    try {
+      const data = await adminModel.findOne()
+      const income = data.income
+      console.log(income);
+      res.status(200).json({income})
+    } catch {
+      res.status(500).json({error:'internal server error'})
     }
-  }catch(err){
-    res.status(500).json({ error: 'Internal server error' });
   }
-}
 
-const addCategory = async(req, res) => {
-  try{
-   const data = req.body
-   const {categoryName, description} = data
-   const result = await cloudinary.uploader.upload(req.file.path); 
-   const cat = {
-    name: categoryName,
-    Image:result.secure_url,
-    description: description
-   }
-   await categoryModel.insertMany([cat])
-   res.status(200).json({'done': true})
-  } catch(err) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-}
-
-const editCategory = async(req, res)=>{
-  try {
-    console.log(req.params.id);
-    await categoryModel.updateOne({_id: req.params.id},{$set:{name: req.body.categoryName, description: req.body.description}})
-    if(req.file){
-      const img = await cloudinary.uploader.upload(req.file.path);
-      await categoryModel.updateOne({_id: req.params.id},{$set:{name: req.body.categoryName,Image:img.secure_url,description: req.body.description}})
+  const countDetails = async(req, res)=> {
+    try {
+      const workerCount = await workerModel.find().count()
+      const clientCount = await userModel.find().count()
+      const workerData = await workerModel.find().populate('department').limit(5)
+      res.status(200).json({workerCount, clientCount, workerData})
+    } catch {
+      res.status(500).json({error:'internal server error'})
     }
-    res.status(200).json({done: true})
-  } catch {
-    res.status(500).json()
   }
-}
 
+  const getChartValue = async(req, res)=> {
+    try {
+
+      workerModel.aggregate([
+        {
+          $group: {
+            _id: '$department', 
+            count: { $sum: 1 }, 
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'departmentInfo',
+          },
+        },
+        {
+          $unwind: '$departmentInfo', 
+        },
+        {
+          $project: {
+            departmentName: '$departmentInfo.name', 
+            workerCount: '$count',
+          },
+        },
+      ])
+        .exec()
+        .then((result) => {
+          console.log(result);
+          res.status(200).json(result);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          res.status(500).json({ success: false, message: 'Internal server error.' });
+        });
+    } catch {
+      res.status(500).json({error: 'internal server error'})
+    }
+  }
+ 
 
 module.exports = {
     loginSubmit,
     showWorkers,
     proof,
-    getCategory,
-    addCategory,
     accept,
     reject,
     verifiedWorkers,
@@ -226,5 +246,7 @@ module.exports = {
     fetchUsers,
     blockUser,
     unBlockUser,
-    editCategory
+    getIncome,
+    countDetails,
+    getChartValue
 }
