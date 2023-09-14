@@ -305,9 +305,14 @@ const mail = (email, otp) => {
       if(!worker) {
         return res.status(200).json({ error: 'no requests' });
       }
-
-      const accepted = worker.requests.filter(request => request.accepted);
-      res.status(200).json({ accepted });
+      const accepted = worker.requests.filter(
+        (request) => request.accepted && request.paymentStatus === 'pending'
+      );
+      const completed = worker.requests.filter(
+        (request) => request.accepted && request.paymentStatus === 'completed'
+      );
+      // const accepted = worker.requests.filter(request => request.accepted);
+      res.status(200).json({ accepted, completed });
     } catch {
       res.status(500).json()
     }
@@ -327,7 +332,7 @@ const mail = (email, otp) => {
           newData = x.progressBar
         }
       }
-      res.status(200).json(data)
+      res.status(200).json({data, newData})
     } catch {
       res.status(500).json({error:'server error'})
     }
@@ -495,6 +500,34 @@ const mail = (email, otp) => {
       res.status(500).json({ error: 'server error' });
     }
   };
+
+  const getCount = async(req, res)=> {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, secretKey);
+      const workerId = decoded.value._id;
+      
+      const data = await workerModel.findOne({_id:workerId}).populate('requests.userInfo')
+      let avg = 0;
+      for(let average of data.rating) {
+         avg = avg + average.starValue / data.rating.length
+      }
+
+      let lengthOfReq = 0;
+      for(let reqs of data.requests) {
+        if(reqs.accepted == false) {
+          lengthOfReq = lengthOfReq + 1
+        }
+      }
+
+
+      const count = data.requests.length
+      res.status(200).json({data, count, avg, lengthOfReq})
+    } catch {
+      res.status(500).json({error:'internal server error'})
+    }
+  }
   
 module.exports = {
     signupSubmit,
@@ -512,5 +545,6 @@ module.exports = {
     updateWorkStatus,
     viewProgress,
     postAmount,
-    pushImage
+    pushImage,
+    getCount
 }

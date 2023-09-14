@@ -7,12 +7,6 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const secretKey = 'your-secret-key';
 const cloudinary = require('../configurations/cloudinaryConfig')
-// const Razorpay = require('razorpay');
-
-// var instance = new Razorpay({
-//   key_id: 'rzp_test_TDRJfd82mop9MS',
-//   key_secret:'g845t1p06XsgYkrcjXYSfFCY',
-// });
 
 
 
@@ -33,7 +27,7 @@ const mail = (email, otp) => {
       secure: true,
       auth: {
         user: "johnabraha57@gmail.com",
-        pass: "tiwbzhsjpldbeade",
+        pass: process.env.EMAIL_PASS,
       },
     });
   
@@ -229,7 +223,6 @@ const userLogin = async(req, res) => {
       const decoded = jwt.verify(token, secretKey);
       const userId = decoded.value._id
       
-      // const worker = await workerModel.find({ 'requests.userInfo': userId }).populate('department')
       const worker = await workerModel.find({
         'requests': {
           $elemMatch: {
@@ -306,31 +299,6 @@ const userLogin = async(req, res) => {
       res.status(500).json({error: 'server error'})
     }
   }
-
-
-  // const razorpayment = async(req, res)=> {
-  //   try {
-  //     var options = {
-  //       amount: req.body.data * 100,
-  //       currency: "INR",
-  //       receipt: 'Order0141',
-  //       payment_capture: 0,
-  //     };
-  //     instance.orders.create(options, (err, order)=> {
-  //       if(err) {
-  //         console.log(err);
-  //         next(err);
-  //       }
-  //       if(order) {
-  //         console.log('database updated');
-  //         res.json({success:true, status:"Order created Successfully", value: order, key:'rzp_test_TDRJfd82mop9MS'})
-  //       }
-  //     })
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //     res.status(500).json({ success: false, message: 'Internal server error.'});
-  //   }
-  // };
 
   const rating = async(req, res)=> {
     try {
@@ -433,8 +401,18 @@ const userLogin = async(req, res) => {
       const decoded = jwt.verify(token, secretKey);
       const userId = decoded.value._id
 
-      let paymentData = await userModel.findOne({_id:userId, 'payment.workerId':req.params.id})
-      res.status(200).json({paymentData})
+      console.log(req.params.id);
+
+      let paymentData = await userModel.findOne({_id:userId})
+      let details;
+      for(let data of paymentData.payment) {
+        if(data.workerId == req.params.id) {
+          details = data
+        }
+      }
+
+      console.log(paymentData);
+      res.status(200).json({paymentData, details})
     } catch {
       res.status(500).json({error: 'internal server error'})
     }

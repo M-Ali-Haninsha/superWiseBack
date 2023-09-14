@@ -33,7 +33,6 @@ function initSocketIO(server) {
 
     socket.on('sendMessageClient', async(message) => {
       try {
-        console.log(message);
         const recievedMessage = new chatModel({
           sender: message.sender,
           senderId: message.senderId,
@@ -47,7 +46,6 @@ function initSocketIO(server) {
         {recieverId:message.senderId, senderId:message.recieverId}
       ]
         })
-      console.log('aaaaaaaaaasssssss',newMessage);
       socket.emit('clientMessage', newMessage)
       } catch(error) {
        console.log(error);

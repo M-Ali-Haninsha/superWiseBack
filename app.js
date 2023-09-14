@@ -1,6 +1,4 @@
 const { createServer } = require("http");
-const { Server } = require("socket.io");
-const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -10,6 +8,7 @@ const cors = require('cors');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
 const initSocketIO = require('../Backend/controller/chatController')
+require('dotenv').config();
 
 const app = express();
 
@@ -26,7 +25,7 @@ app.use(cors());
 app.use('/', usersRouter);
 app.use('/admin', adminRouter);
 
-mongoose.connect('mongodb://127.0.0.1:27017/superWise').then(() => {
+mongoose.connect(process.env.DATABASE).then(() => {
   console.log('connection successful');
 }).catch((error) => {
   console.log('something wrong', error);

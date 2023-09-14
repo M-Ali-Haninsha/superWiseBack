@@ -25,6 +25,7 @@ router.get('/viewProgress/:id', jwt, workerController.viewProgress)
 router.put('/updateWorkProgress/:id', jwt, workerController.updateWorkStatus)
 router.post('/postAmount/:id', jwt, workerController.postAmount)
 router.post('/pushImages/:id', jwt, multerConfig.array('files', 3), workerController.pushImage)
+router.get('/getCount', jwt, workerController.getCount)
 
 //users
 router.get('/fetchCategories', userController.getCategory)
