@@ -11,7 +11,20 @@ const adminSchema = new mongoose.Schema({
     },
     income: {
         type: Number
-    } 
+    },
+    complaints:[{
+        clientId:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'userData'
+        },
+        workerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'workerData'
+        },
+        issue: {
+            type:String
+        }
+    }]
 });
 
 const adminData=mongoose.model('adminData', adminSchema);

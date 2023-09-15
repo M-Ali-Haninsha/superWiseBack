@@ -51,6 +51,6 @@ router.get('/getPaymentData/:id', jwt, userController.getPaymentData)
 router.get('/workCompleteData/:id', jwt,paymentController.successPageData)
 router.get('/viewWorkHistory', jwt, userController.viewWorkHistory)
 router.get('/historyData/:id', jwt, userController.historyData)
-
+router.post('/reportWorker/:id', jwt, userController.reportWorker)
 
 module.exports = router;
