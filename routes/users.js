@@ -3,10 +3,8 @@ const router = express.Router();
 const workerController = require('../controller/workerController')
 const userController = require('../controller/userController')
 const paymentController = require('../controller/paymentController')
-const chatController = require('../controller/chatController')
 const multerConfig = require('../configurations/multerConfig')
 const jwt = require('../middleware/jwt');
-const category = require('../models/category');
 
 //workers
 router.post('/workerSignup',multerConfig.single('file'), workerController.signupSubmit)
