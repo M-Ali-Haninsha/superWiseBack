@@ -25,7 +25,7 @@ app.use(cors());
 app.use('/', usersRouter);
 app.use('/admin', adminRouter);
 
-mongoose.connect(process.env.DATABASE).then(() => {
+mongoose.connect(`${process.env.DATABASE}`).then(() => {
   console.log('connection successful');
 }).catch((error) => {
   console.log('something wrong', error);
