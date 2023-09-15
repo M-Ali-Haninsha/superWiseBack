@@ -1,6 +1,7 @@
 const categoryModel = require("../models/category");
 const userModel = require("../models/userModel");
 const workerModel = require("../models/workerModel");
+const adminModel = require("../models/adminModel")
 const { otpGen } = require("../configurations/otpGenerator");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
@@ -509,6 +510,38 @@ const historyData = async (req, res) => {
   }
 };
 
+  const reportWorker = async(req, res)=> {
+    try {
+      console.log('entered');
+
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(" ")[1];
+     const decoded = jwt.verify(token, secretKey);
+      const userId = decoded.value._id;
+      console.log(req.params.id);
+      console.log(req.body);
+
+      let clientCheck = await adminModel.findOne({'complaints.clientId':userId})
+      
+      if(!clientCheck){
+        let complaint = {
+          clientId: userId,
+          workerId: req.params.id,
+          issue:req.body.reason
+        }
+        console.log(complaint);
+        await adminModel.updateOne({},{$push:{complaints:complaint}},{upsert:true})
+        res.status(200).json({reportUpdated: true})
+      } else {
+        res.status(200).json({clientFound:'already reported'})
+      }
+
+      
+    } catch {
+      res.status(500).json({error:'internal server error'})
+    }
+  }
+
 module.exports = {
   getCategory,
   userSignup,
@@ -531,4 +564,5 @@ module.exports = {
   getPaymentData,
   viewWorkHistory,
   historyData,
+  reportWorker
 };
