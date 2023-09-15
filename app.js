@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
-// const initSocketIO = require('../Backend/controller/chatController')
+const initSocketIO = require('../Backend/controller/chatController')
 require('dotenv').config();
 
 const app = express();
@@ -38,7 +38,7 @@ mongoose.connect("mongodb+srv://alianinsha:REDACTED@cluster0.pfadjej.mongodb.net
 });
 
 const httpServer = createServer(app); 
-// const io = initSocketIO(httpServer);
+const io = initSocketIO(httpServer);
 
 
 httpServer.listen(3000, () => {
