@@ -32,5 +32,7 @@ router.post("/adminUnblockUser", jwt, adminController.unBlockUser);
 router.get("/getIncome", jwt, adminController.getIncome);
 router.get("/countDetails", jwt, adminController.countDetails);
 router.get("/getChartValue", jwt, adminController.getChartValue);
+router.get("/getComplaints", jwt, adminController.showComplaints)
+router.get("/getReportedWorker", jwt, adminController.getReportedWorker)
 
 module.exports = router;

@@ -239,6 +239,49 @@ const getChartValue = async (req, res) => {
   }
 };
 
+const showComplaints = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, secretKey);
+    let adminId = decoded.value._id;
+
+    let complaints = await adminModel
+      .findOne({ _id: adminId })
+      .populate("complaints.clientId complaints.workerId");
+
+    res.status(200).json(complaints);
+  } catch {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+// const getReportedWorker = async(req, res)=> {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token = authHeader && authHeader.split(" ")[1];
+//     const decoded = jwt.verify(token, secretKey);
+//     const adminId = decoded.value._id;
+//     const workerId = req.query.workerId;
+//     const clientId = req.query.clientId;
+
+//     const worker = await adminModel.findOne({
+//         _id: adminId,
+//         complaints: {
+//             $elemMatch: {
+//                 workerId: workerId,
+//                 clientId: clientId
+//             }
+//         }
+//     })
+
+//     console.log(worker);
+//     res.status(200).json({ worker });
+// }  catch {
+//     res.status(500).json({error:" internal server error"})
+//   }
+// }
+
 module.exports = {
   loginSubmit,
   showWorkers,
@@ -254,4 +297,6 @@ module.exports = {
   getIncome,
   countDetails,
   getChartValue,
+  showComplaints,
+  // getReportedWorker
 };
