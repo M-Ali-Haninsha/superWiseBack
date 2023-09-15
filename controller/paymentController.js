@@ -6,8 +6,8 @@ const adminModel = require("../models/adminModel");
 const clientModel = require("../models/userModel");
 
 var instance = new Razorpay({
-  key_id: process.env.KEY_ID,
-  key_secret: process.env.KEY_SECRET,
+  key_id: "rzp_test_TDRJfd82mop9MS",
+  key_secret: "g845t1p06XsgYkrcjXYSfFCY",
 });
 
 const razorpayment = async (req, res) => {
