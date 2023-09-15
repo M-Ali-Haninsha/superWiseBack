@@ -26,17 +26,17 @@ app.use(cors());
 app.use('/', usersRouter);
 app.use('/admin', adminRouter);
 
-// mongoose.connect(process.env.DATABASE).then(() => {
-//   console.log('connection successful');
-// }).catch((error) => {
-//   console.log('something wrong', error);
-// });
-
-mongoose.connect("mongodb+srv://alianinsha:oTpcbeQnLZnkKtiu@cluster0.pfadjej.mongodb.net/superWise").then(() => {
+mongoose.connect(process.env.DATABASE).then(() => {
   console.log('connection successful');
 }).catch((error) => {
   console.log('something wrong', error);
 });
+
+// mongoose.connect("mongodb+srv://alianinsha:oTpcbeQnLZnkKtiu@cluster0.pfadjej.mongodb.net/superWise").then(() => {
+//   console.log('connection successful');
+// }).catch((error) => {
+//   console.log('something wrong', error);
+// });
 
 const httpServer = createServer(app); 
 const io = initSocketIO(httpServer);
