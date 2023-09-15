@@ -7,8 +7,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
-const initSocketIO = require('../Backend/controller/chatController')
-// require('dotenv').config();
+const initSocketIO = require('././controller/chatController')
+
+require('dotenv').config();
 
 const app = express();
 
