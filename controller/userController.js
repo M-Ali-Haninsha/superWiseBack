@@ -152,7 +152,6 @@ const workerDetails = async (req, res) => {
 
 const hireWorker = async (req, res) => {
   try {
-    console.log("body", req.body);
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
     const decoded = jwt.verify(token, secretKey);
