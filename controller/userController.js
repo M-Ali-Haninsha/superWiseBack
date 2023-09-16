@@ -79,7 +79,7 @@ const userSignup = async (req, res) => {
 
 const userOtp = async (req, res) => {
   try {
-    const Eotp = req.body.data;
+    const Eotp = req.body.datas;
     const sentOtp = otp;
     if (Eotp == sentOtp) {
       const userDetails = userData;
