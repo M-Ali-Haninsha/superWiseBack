@@ -26,7 +26,7 @@ const mail = (email, otp) => {
     secure: true,
     auth: {
       user: "johnabraha57@gmail.com",
-      pass: process.env.EMAIL_PASS,
+      pass: "tiwbzhsjpldbeade",
     },
   });
 
