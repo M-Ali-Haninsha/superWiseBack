@@ -78,6 +78,6 @@ router.get("/workCompleteData/:id", jwt, paymentController.successPageData);
 router.get("/viewWorkHistory", jwt, userController.viewWorkHistory);
 router.get("/historyData/:id", jwt, userController.historyData);
 router.post("/reportWorker/:id", jwt, userController.reportWorker);
-router.get("/bookedDates/:id", jwt, userController.bookedDates)
+// router.get("/bookedDates/:id", jwt, userController.bookedDates)
 
 module.exports = router;
