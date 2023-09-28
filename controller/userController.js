@@ -545,6 +545,18 @@ const reportWorker = async (req, res) => {
   }
 };
 
+const bookedDates = async(req, res) => {
+  try {
+    const workerId = req.params.id;
+    
+    const worker = await workerModel.findById(workerId);
+    const bookedDates = worker.requests.map(request => request.date);
+    res.status(200).json(bookedDates)
+  } catch {
+    res.status(500).json({error:" Internal server error"})
+  }
+}
+
 module.exports = {
   getCategory,
   userSignup,
@@ -568,4 +580,5 @@ module.exports = {
   viewWorkHistory,
   historyData,
   reportWorker,
+  bookedDates
 };
