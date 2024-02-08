@@ -7,6 +7,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const secretKey = "your-secret-key";
 
+//login page
+
 const loginSubmit = async (req, res) => {
   try {
     const email = req.body.email;
