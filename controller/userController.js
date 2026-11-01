@@ -6,7 +6,7 @@ const { otpGen } = require("../configurations/otpGenerator");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const secretKey = "your-secret-key";
+const secretKey = process.env.JWT_SECRET;
 const cloudinary = require("../configurations/cloudinaryConfig");
 
 const bcryptPassword = async (password) => {
@@ -25,13 +25,13 @@ const mail = (email, otp) => {
     port: 465,
     secure: true,
     auth: {
-      user: "johnabraha57@gmail.com",
-      pass: "REDACTED",
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
     },
   });
 
   const mailOptions = {
-    from: "johnabraha57@gmail.com",
+    from: process.env.MAIL_USER,
     to: email,
     subject: "Your OTP",
     text: `Your OTP is ${otp}.`,

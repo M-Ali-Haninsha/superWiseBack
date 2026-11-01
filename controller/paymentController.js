@@ -1,13 +1,13 @@
 const Razorpay = require("razorpay");
 const jwt = require("jsonwebtoken");
-const secretKey = "your-secret-key";
+const secretKey = process.env.JWT_SECRET;
 const workerModel = require("../models/workerModel");
 const adminModel = require("../models/adminModel");
 const clientModel = require("../models/userModel");
 
 var instance = new Razorpay({
-  key_id: "rzp_test_TDRJfd82mop9MS",
-  key_secret: "REDACTED",
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const razorpayment = async (req, res) => {
@@ -71,7 +71,7 @@ const razorpayment = async (req, res) => {
           success: true,
           status: "Order created Successfully",
           value: order,
-          key: "rzp_test_TDRJfd82mop9MS",
+          key: process.env.RAZORPAY_KEY_ID,
         });
       }
     });

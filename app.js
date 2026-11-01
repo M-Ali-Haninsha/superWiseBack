@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { createServer } = require("http");
 const express = require('express');
 const path = require('path');
@@ -9,7 +10,6 @@ const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
 const initSocketIO = require('././controller/chatController')
 
-require('dotenv').config();
 
 const app = express();
 
@@ -32,11 +32,6 @@ mongoose.connect(process.env.DATABASE).then(() => {
   console.log('something wrong', error);
 });
 
-// mongoose.connect("mongodb+srv://alianinsha:REDACTED@cluster0.pfadjej.mongodb.net/superWise").then(() => {
-//   console.log('connection successful');
-// }).catch((error) => {
-//   console.log('something wrong', error);
-// });
 
 const httpServer = createServer(app); 
 const io = initSocketIO(httpServer);

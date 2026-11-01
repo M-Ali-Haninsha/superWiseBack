@@ -5,7 +5,7 @@ const userModel = require("../models/userModel");
 const categoryModel = require("../models/category");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const secretKey = "your-secret-key";
+const secretKey = process.env.JWT_SECRET;
 
 //login page
 
