@@ -190,8 +190,8 @@ const getIncome = async (req, res) => {
 
 const countDetails = async (req, res) => {
   try {
-    const workerCount = await workerModel.find().count();
-    const clientCount = await userModel.find().count();
+    const workerCount = await workerModel.countDocuments();
+    const clientCount = await userModel.countDocuments();
     const workerData = await workerModel.find().populate("department").limit(5);
     res.status(200).json({ workerCount, clientCount, workerData });
   } catch {
