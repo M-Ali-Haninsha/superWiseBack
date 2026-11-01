@@ -57,7 +57,7 @@ async function counts() {
   const [workerCount, clientCount, workerData] = await Promise.all([
     workerModel.countDocuments(),
     userModel.countDocuments(),
-    workerModel.find().select("-requests -income").populate("department").limit(5),
+    workerModel.find().select("-requests").populate("department").limit(5),
   ]);
   return { workerCount, clientCount, workerData };
 }
