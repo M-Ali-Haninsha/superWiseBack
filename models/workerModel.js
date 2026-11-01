@@ -12,14 +12,28 @@ const workerSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
     required: true,
+    select: false,
   },
+  // Legacy: filename of a proof that was stored on the server's disk.
   file: {
     type: String,
-    required: true,
+    select: false,
+  },
+  // ID proof stored privately on Cloudinary; admins get a short-lived link.
+  proof: {
+    type: {
+      publicId: String,
+      resourceType: String,
+      format: String,
+    },
+    select: false,
   },
   department: {
     type: mongoose.Schema.Types.ObjectId,
@@ -82,6 +96,7 @@ const workerSchema = new mongoose.Schema({
   ],
   income: {
     type: Number,
+    default: 0,
   },
   isVerified: {
     type: Boolean,

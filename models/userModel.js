@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
   },
   phone: {
     type: Number,
@@ -29,6 +32,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
   },
   location: {
     type: String,
@@ -78,10 +82,17 @@ const userSchema = new mongoose.Schema({
       status: {
         type: String,
       },
+      orderId: {
+        type: String,
+      },
+      paymentId: {
+        type: String,
+      },
     },
   ],
   isBlocked: {
     type: Boolean,
+    default: false,
   },
 });
 

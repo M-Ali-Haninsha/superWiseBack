@@ -1,38 +1,49 @@
 const express = require("express");
-const router = express.Router();
-const adminController = require("../controller/adminContoller");
-const categoryController = require("../controller/categoryController");
-const upload = require("../configurations/multerConfig");
-const jwt = require("../middleware/jwt");
+const admin = require("../controllers/admin.controller");
+const { authenticate } = require("../middleware/auth");
+const { authLimiter } = require("../middleware/rateLimit");
+const { imageUpload } = require("../middleware/upload");
+const validate = require("../middleware/validate");
+const s = require("../validators/schemas");
 
-router.post("/adminLogin", adminController.loginSubmit);
-router.get("/adminGetWorker", jwt, adminController.showWorkers);
-router.get("/adminVerifiedGetWorker", jwt, adminController.verifiedWorkers);
-router.get("/adminViewProof/:proof", adminController.proof);
+const router = express.Router();
+
+router.post("/adminLogin", authLimiter, validate({ body: s.login }), admin.login);
+
+// Everything below requires an admin token.
+router.use(authenticate("admin"));
+
+const withId = validate({ params: s.idParam });
+const withEmail = validate({ body: s.emailBody });
+const withBodyId = validate({ body: s.requestId });
+
+router.get("/adminGetWorker", admin.unverifiedWorkers);
+router.get("/adminVerifiedGetWorker", admin.verifiedWorkers);
+router.get("/adminViewProof/:id", withId, admin.proofUrl);
+router.post("/adminAccept", withEmail, admin.acceptWorker);
+router.post("/adminReject", withEmail, admin.rejectWorker);
+router.post("/adminBlockWorker", withBodyId, admin.blockWorker);
+router.post("/adminUnblockWorker", withBodyId, admin.unblockWorker);
+router.get("/adminFetchUsers", admin.listUsers);
+router.post("/adminBlockUser", withBodyId, admin.blockUser);
+router.post("/adminUnblockUser", withBodyId, admin.unblockUser);
+router.get("/getIncome", admin.income);
+router.get("/countDetails", admin.counts);
+router.get("/getChartValue", admin.chart);
+router.get("/getComplaints", admin.complaints);
+router.get("/adminFetchCategory", admin.listCategories);
 router.post(
   "/adminAddCategory",
-  jwt,
-  upload.single("file"),
-  categoryController.addCategory
+  imageUpload.single("file"),
+  validate({ body: s.category }),
+  admin.addCategory
 );
 router.post(
   "/editCategory/:id",
-  jwt,
-  upload.single("file"),
-  categoryController.editCategory
+  withId,
+  imageUpload.single("file"),
+  validate({ body: s.category }),
+  admin.editCategory
 );
-router.get("/adminFetchCategory", jwt, categoryController.getCategory);
-router.post("/adminAccept", jwt, adminController.accept);
-router.post("/adminReject", jwt, adminController.reject);
-router.post("/adminBlockWorker", jwt, adminController.blockWorker);
-router.post("/adminUnblockWorker", jwt, adminController.unBlockWorker);
-router.get("/adminFetchUsers", jwt, adminController.fetchUsers);
-router.post("/adminBlockUser", jwt, adminController.blockUser);
-router.post("/adminUnblockUser", jwt, adminController.unBlockUser);
-router.get("/getIncome", jwt, adminController.getIncome);
-router.get("/countDetails", jwt, adminController.countDetails);
-router.get("/getChartValue", jwt, adminController.getChartValue);
-router.get("/getComplaints", jwt, adminController.showComplaints)
-// router.get("/getReportedWorker", jwt, adminController.getReportedWorker)
 
 module.exports = router;

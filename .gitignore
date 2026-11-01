@@ -3,3 +3,8 @@
 
 #node module ignore
 node_modules
+
+# uploads now go to Cloudinary; never commit local upload folders
+public/files/
+uploads/
+coverage/

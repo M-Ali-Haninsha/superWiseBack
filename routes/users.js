@@ -1,83 +1,77 @@
 const express = require("express");
-const router = express.Router();
-const workerController = require("../controller/workerController");
-const userController = require("../controller/userController");
-const paymentController = require("../controller/paymentController");
-const multerConfig = require("../configurations/multerConfig");
-const jwt = require("../middleware/jwt");
+const user = require("../controllers/user.controller");
+const worker = require("../controllers/worker.controller");
+const payment = require("../controllers/payment.controller");
+const { authenticate } = require("../middleware/auth");
+const { authLimiter } = require("../middleware/rateLimit");
+const { imageUpload, proofUpload } = require("../middleware/upload");
+const validate = require("../middleware/validate");
+const s = require("../validators/schemas");
 
-//workers
+const router = express.Router();
+const asWorker = authenticate("worker");
+const asUser = authenticate("user");
+const withId = validate({ params: s.idParam });
+
+// Workers
 router.post(
   "/workerSignup",
-  multerConfig.single("file"),
-  workerController.signupSubmit
+  authLimiter,
+  proofUpload.single("file"),
+  validate({ body: s.workerSignup }),
+  worker.signup
 );
-router.post(
-  "/workerOtpProcess",
-  multerConfig.single("file"),
-  workerController.otpProceed
-);
-router.get("/FetchCategory", workerController.getCategory);
-router.post("/workerLogin", workerController.workerLogin);
-router.get("/fetchWorkerData", jwt, workerController.getWorkerDetails);
-router.put(
-  "/workerEditProfilePhoto",
-  jwt,
-  multerConfig.single("file"),
-  workerController.editPhoto
-);
-router.put("/workerEditProfileData", jwt, workerController.editDetails);
-router.get("/fetchUserRequest", jwt, workerController.fetchRequest);
-router.put("/workAccept", jwt, workerController.workAccept);
-router.put("/workReject", jwt, workerController.workReject);
-router.get("/fetchAcceptedWorks", jwt, workerController.acceptedWorks);
-router.put("/updateDescription", jwt, workerController.updateDescription);
-router.get("/viewProgress/:id", jwt, workerController.viewProgress);
-router.put("/updateWorkProgress/:id", jwt, workerController.updateWorkStatus);
-router.post("/postAmount/:id", jwt, workerController.postAmount);
-router.post(
-  "/pushImages/:id",
-  jwt,
-  multerConfig.array("files", 3),
-  workerController.pushImage
-);
-router.get("/getCount", jwt, workerController.getCount);
+router.post("/workerOtpProcess", authLimiter, validate({ body: s.otp }), worker.confirmOtp);
+router.post("/workerLogin", authLimiter, validate({ body: s.login }), worker.login);
+router.get("/FetchCategory", worker.getCategories);
+router.get("/fetchWorkerData", asWorker, worker.getProfile);
+router.put("/workerEditProfilePhoto", asWorker, imageUpload.single("file"), worker.updatePhoto);
+router.put("/workerEditProfileData", asWorker, validate({ body: s.updateWorker }), worker.updateDetails);
+router.put("/updateDescription", asWorker, validate({ body: s.description }), worker.updateDescription);
+router.get("/fetchUserRequest", asWorker, worker.pendingRequests);
+router.put("/workAccept", asWorker, validate({ body: s.requestId }), worker.acceptRequest);
+router.put("/workReject", asWorker, validate({ body: s.requestId }), worker.rejectRequest);
+router.get("/fetchAcceptedWorks", asWorker, worker.acceptedWorks);
+router.get("/viewProgress/:id", asWorker, withId, worker.viewProgress);
+router.put("/updateWorkProgress/:id", asWorker, withId, validate({ body: s.progress }), worker.updateProgress);
+router.post("/postAmount/:id", asWorker, withId, validate({ body: s.amount }), worker.postAmount);
+router.post("/pushImages/:id", asWorker, withId, imageUpload.array("files", 3), worker.pushImages);
+router.get("/getCount", asWorker, worker.dashboard);
 
-//users
-router.get("/fetchCategories", userController.getCategory);
-router.post("/userSignup", userController.userSignup);
-router.post("/userOtp", userController.userOtp);
-router.post("/userLogin", userController.userLogin);
-router.get("/fetchWorkers/:id", userController.getWorkers);
-router.get("/fetchWorkerDetails/:id", userController.workerDetails);
+// Clients
+router.get("/fetchCategories", user.getCategories);
+router.post("/userSignup", authLimiter, validate({ body: s.userSignup }), user.signup);
+router.post("/userOtp", authLimiter, validate({ body: s.otp }), user.confirmOtp);
+router.post("/userLogin", authLimiter, validate({ body: s.login }), user.login);
+router.get("/fetchWorkers/:id", withId, user.getWorkers);
+router.get("/fetchWorkerDetails/:id", withId, user.workerDetails);
+router.get("/showRating/:id", withId, user.getRatings);
 router.post(
   "/hireWorker/:id",
-  jwt,
-  multerConfig.single("file"),
-  userController.hireWorker
+  asUser,
+  withId,
+  imageUpload.single("file"),
+  validate({ body: s.hire }),
+  user.hireWorker
 );
-router.get("/fetchUserData", jwt, userController.getUserData);
-router.put(
-  "/updatePhoto",
-  jwt,
-  multerConfig.single("file"),
-  userController.editPhoto
-);
-router.get("/hiredWorkers", jwt, userController.hiredWorks);
-router.put("/updateUserData", jwt, userController.updateDetails);
-router.get("/getProgressValue/:id", jwt, userController.getProgressValue);
-router.post("/razorpay", jwt, paymentController.razorpayment);
-router.get("/getAmount/:id", jwt, userController.getAmount);
-router.post("/rating/:id", jwt, userController.rating);
-router.get("/showRating/:id", userController.showRating);
-router.get("/getProgressImages/:id", jwt, userController.progressImages);
-router.get("/clientDataMessage", jwt, userController.clientDataMessage);
-router.get("/workerDataMessage/:id", jwt, userController.workDataMessage);
-router.get("/getPaymentData/:id", jwt, userController.getPaymentData);
-router.get("/workCompleteData/:id", jwt, paymentController.successPageData);
-router.get("/viewWorkHistory", jwt, userController.viewWorkHistory);
-router.get("/historyData/:id", jwt, userController.historyData);
-router.post("/reportWorker/:id", jwt, userController.reportWorker);
-// router.get("/bookedDates/:id", jwt, userController.bookedDates)
+router.get("/fetchUserData", asUser, user.getProfile);
+router.put("/updatePhoto", asUser, imageUpload.single("file"), user.updatePhoto);
+router.put("/updateUserData", asUser, validate({ body: s.updateUser }), user.updateProfile);
+router.get("/hiredWorkers", asUser, user.hiredWorkers);
+router.get("/getProgressValue/:id", asUser, withId, user.getProgress);
+router.get("/getAmount/:id", asUser, withId, user.getAmount);
+router.post("/rating/:id", asUser, withId, validate({ body: s.rating }), user.rateWorker);
+router.get("/getProgressImages/:id", asUser, withId, user.getProgressImages);
+router.get("/clientDataMessage", asUser, user.clientForChat);
+router.get("/workerDataMessage/:id", authenticate(), withId, user.workerForChat);
+router.get("/getPaymentData/:id", asUser, withId, user.getPaymentData);
+router.get("/workCompleteData/:id", asUser, withId, user.completedWork);
+router.get("/viewWorkHistory", asUser, user.workHistory);
+router.get("/historyData/:id", asUser, withId, user.historyDetail);
+router.post("/reportWorker/:id", asUser, withId, validate({ body: s.report }), user.reportWorker);
+
+// Payments
+router.post("/razorpay", asUser, validate({ body: s.createOrder }), payment.createOrder);
+router.post("/razorpay/verify", asUser, validate({ body: s.verifyPayment }), payment.verifyPayment);
 
 module.exports = router;
